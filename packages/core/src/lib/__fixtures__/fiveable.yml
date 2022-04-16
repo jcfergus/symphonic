@@ -1,0 +1,95 @@
+general:
+  namespace: fiveable
+
+prettifiers:
+  pino: 'pino-pretty --hideObject  -t "SYS:yyyy-mm-dd HH:MM:ss.l"'
+  pinoWithObject: 'pino-pretty -t "SYS:yyyy-mm-dd HH:MM:ss.l"'
+
+environments:
+  development:
+    components:
+      - common
+      - backend
+      - frontend
+      - io
+      - mongodbReplicaSet
+    description:  Full local development stack, including mongodb replica set (in docker).
+
+resources:
+  mongodbReplicaSet:
+    type: aggregate
+    needs:
+      - mongodbNetwork
+      - mongodbPrimary
+      - mongodbSecondary
+      - mongodbTertiary
+
+  mongodbNetwork:
+    type: dockerNetwork
+    name: mongodb
+
+  mongodbPrimary:
+    type: dockerRun
+    image: mongo
+    needs:
+      - mongodbNetwork
+    remove: true
+    name: mongo_1
+    hostname: mongo1
+    network: mongodb
+    volume:
+      - "docker_1:/data/db"
+      - "scripts/init-replicaset.js:/tmp/init-replicaset.js"
+    env:
+      - "PORT=27017"
+    ports:
+      - "27017:27017"
+    args: "--replSet fiveable"
+
+  mongodbSecondary:
+    type: dockerRun
+    image: mongo
+    remove: true
+    needs:
+      - mongodbNetwork
+    name: mongo_2
+    hostname: mongo2
+    network: mongodb
+    volume:
+      - "docker_2:/data/db"
+    env:
+      - "PORT=27018"
+    ports:
+      - "27018:27018"
+    args: "--port 27018 --replSet fiveable"
+
+  mongodbTertiary:
+    type: dockerRun
+    image: mongo
+    remove: true
+    needs:
+      - mongodbNetwork
+    name: mongo_3
+    hostname: mongo3
+    network: mongodb
+    volume:
+      - "docker_3:/data/db"
+    env:
+      - "PORT=27019"
+    ports:
+      - "27019:27019"
+    args: "--port 27019 --replSet fiveable"
+
+  common:
+    type: nodemon
+    command: "yarn workspace @hours/common run dev"
+    envVars:
+      - MONGO_URL
+      - JWT_KEY
+      - NODE_ENV
+      - GOOGLE_CLIENTID
+      - GOOGLE_CLIENTSECRET
+    output:
+      - "file:./common/dist/index.js"
+    timeout: 5000
+    prettifier: pino

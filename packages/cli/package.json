@@ -1,0 +1,9 @@
+{
+  "name": "@symphonic/cli",
+  "version": "0.0.1",
+  "type": "commonjs",
+  "dependencies": {
+    "commander": "^9.1.0",
+    "signale": "^1.4.0"
+  }
+}
