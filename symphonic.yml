@@ -1,0 +1,110 @@
+general:
+  namespace: fiveable
+
+prettifiers:
+  pino: 'pino-pretty --hideObject  -t "SYS:yyyy-mm-dd HH:MM:ss.l"'
+  pinoWithObject: 'pino-pretty -t "SYS:yyyy-mm-dd HH:MM:ss.l"'
+
+environments:
+  development:
+    components:
+      - common
+      - backend
+      - frontend
+      - io
+      - mongodbReplicaSet
+    description:  Full local development stack, including mongodb replica set (in docker).
+
+resources:
+  - name: mongodbReplicaSet
+    type: aggregate
+    needs:
+      - mongodbReplicaVolumes
+      - mongodbNetwork
+      - mongodbPrimary
+      - mongodbSecondary
+      - mongodbTertiary
+
+  - name: mongodbReplicaVolumes
+    type: aggregate
+    needs:
+      - mongodbReplicaVolume1
+      - mongodbReplicaVolume2
+
+  - name: mongodbReplicaVolume1
+    type: dockerVolume
+    volumeName: mongo_volume_1
+
+  - name: mongodbReplicaVolume2
+    type: dockerVolume
+    volumeName: hours_mongo_data_2
+
+  - name: mongodbNetwork
+    type: dockerNetwork
+    networkName: mongodb
+
+  - name: mongodbPrimary
+    type: dockerRun
+    image: mongo
+    needs:
+      - mongodbNetwork
+    remove: true
+    containerName: mongo_1
+    hostname: mongo1
+    network: mongodb
+    volume:
+      - "docker_1:/data/db"
+      - "scripts/init-replicaset.js:/tmp/init-replicaset.js"
+    env:
+      - "PORT=27017"
+    ports:
+      - "27017:27017"
+    args: "--replSet fiveable"
+
+  - name: mongodbSecondary
+    type: dockerRun
+    image: mongo
+    remove: true
+    needs:
+      - mongodbNetwork
+    containerName: mongo_2
+    hostname: mongo2
+    network: mongodb
+    volume:
+      - "docker_2:/data/db"
+    env:
+      - "PORT=27018"
+    ports:
+      - "27018:27018"
+    args: "--port 27018 --replSet fiveable"
+
+  - name: mongodbTertiary
+    type: dockerRun
+    image: mongo
+    remove: true
+    needs:
+      - mongodbNetwork
+    containerName: mongo_3
+    hostname: mongo3
+    network: mongodb
+    volume:
+      - "docker_3:/data/db"
+    env:
+      - "PORT=27019"
+    ports:
+      - "27019:27019"
+    args: "--port 27019 --replSet fiveable"
+
+  - name: common
+    type: nodemon
+    command: "yarn workspace @hours/common run dev"
+    envVars:
+      - MONGO_URL
+      - JWT_KEY
+      - NODE_ENV
+      - GOOGLE_CLIENTID
+      - GOOGLE_CLIENTSECRET
+    output:
+      - "file:./common/dist/index.js"
+    timeout: 5000
+    prettifier: pino
