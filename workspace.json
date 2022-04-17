@@ -2,6 +2,7 @@
   "version": 2,
   "projects": {
     "cli": "packages/cli",
-    "core": "packages/core"
+    "core": "packages/core",
+    "inkui": "packages/inkui"
   }
 }

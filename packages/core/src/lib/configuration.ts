@@ -8,16 +8,9 @@ import GeneralConfiguration from './generalConfiguration';
 import EnvironmentConfiguration from './environmentConfiguration';
 import ResourceConfiguration, { resourceSubTypeDiscriminator } from "./resourceConfiguration";
 import BaseResource from './resourceTypes/base';
-import AggregateResource from './resourceTypes/aggregate';
-import DockerNetworkResource from './resourceTypes/dockerNetwork';
-import DockerRunResource from './resourceTypes/dockerRun';
-import NpmScriptResource from './resourceTypes/npmScript';
-import ShellCommandResource from './resourceTypes/shellCommand';
-import DockerVolumeResource from './resourceTypes/dockerVolume';
-import NodemonResource from './resourceTypes/nodemon';
 import debug from 'debug';
 
-const log = debug("symphonic:core:configuration");
+const dbg = debug("symphonic:core:configuration");
 
 export class SymphonicConfiguration {
   @Type(() => GeneralConfiguration)
@@ -38,26 +31,30 @@ export class SymphonicConfiguration {
       subTypes: resourceSubTypeDiscriminator
     }
   })
+
   resources: Array<ResourceConfiguration>;
 
   constructor(configData: string) {
-    log("constructor()")
+    dbg("constructor()")
     try {
       this.parsedConfig = YAML.parse(configData);
-      return plainToClassFromExist(this, this.parsedConfig);
+      plainToClassFromExist(this, this.parsedConfig);
     } catch (e) {
       console.log('Failed to parse configuration file.', e);
     }
 
     this.addConfigurationToNodes();
+
+    return this;
   }
 
   public addConfigurationToNodes() {
-    log("addConfigurationToNodes()");
+    dbg("addConfigurationToNodes()");
 
-    this.resources.forEach((resource) => {
+    for (const resource of this.resources) {
+      dbg(`Adding configuration to ${resource.name}`);
       resource.configuration = this.general;
-    })
+    }
   }
 
   public getResourceByName(resourceName: string) {

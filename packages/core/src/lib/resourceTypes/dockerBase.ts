@@ -6,7 +6,7 @@ import GeneralConfiguration from "../generalConfiguration";
 
 import debug from 'debug';
 
-const log = debug("symphonic:core:resources:docker:base");
+const dbg = debug("symphonic:core:resources:docker:base");
 
 export default abstract class DockerBaseResource extends BaseResource {
   public dockerConfiguration: DockerConfiguration;

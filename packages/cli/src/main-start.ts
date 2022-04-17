@@ -28,6 +28,7 @@ const dbg = debug("symphonic:cli:start");
 
     await app.start();
 
+    log.success(`symphonic application running`);
   } catch (e) {
     log.error("Error initialising Symphonic: ", e);
   }

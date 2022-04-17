@@ -11,6 +11,13 @@ export default class DockerVolumeResource extends DockerBaseResource {
   public volumeName: string;
   public failIfExists = false;
 
+  get objectName(): string {
+    if (this.generalConfiguration.namespace) {
+      return `${this.generalConfiguration.namespace}_${this.volumeName}`;
+    }
+    return this.volumeName;
+  }
+
   public create = async (): Promise<ResourceStatus> => {
     const exists = await this.checkIfVolumeExists();
 
@@ -18,7 +25,7 @@ export default class DockerVolumeResource extends DockerBaseResource {
       this.created = false;
       this.ready = false;
       throw new Error(
-        `Docker volume ${this.volumeName} already exists and 'failIfExists' is set.`
+        `Docker volume ${this.objectName} already exists and 'failIfExists' is set.`
       );
     }
 
@@ -28,14 +35,14 @@ export default class DockerVolumeResource extends DockerBaseResource {
     } else {
       this.created = false;
       this.ready = true;
-      dbg(`Volume ${this.volumeName} already exists - using existing volume.`);
+      dbg(`Volume ${this.objectName} already exists - using existing volume.`);
     }
 
     return this.status;
   };
 
   public destroy = async (): Promise<ResourceStatus> => {
-    dbg(`Destroying docker volume resource ${this.volumeName}.`);
+    dbg(`Destroying docker volume resource ${this.objectName}.`);
     (await this.checkIfVolumeExists()) && (await this.deleteVolume());
 
     return { destroyed: true }; // We're assuming if it doesn't exist, it's destroyed.
@@ -46,7 +53,7 @@ export default class DockerVolumeResource extends DockerBaseResource {
    */
   public checkIfVolumeExists = async (): Promise<boolean> => {
     try {
-      const volume = await this.dockerConnection.getVolume(this.volumeName);
+      const volume = await this.dockerConnection.getVolume(this.objectName);
       const volumeData = await volume.inspect();
       return !!volumeData?.Name;
     } catch (e) {
@@ -60,8 +67,8 @@ export default class DockerVolumeResource extends DockerBaseResource {
    */
   public createVolume = async (): Promise<boolean> => {
     try {
-      await this.dockerConnection.createVolume({ name: this.volumeName });
-      const volume = await this.dockerConnection.getVolume(this.volumeName);
+      await this.dockerConnection.createVolume({ name: this.objectName });
+      const volume = await this.dockerConnection.getVolume(this.objectName);
       const volumeDetail = await volume.inspect();
       dbg(`Created volume: ${JSON.stringify(volumeDetail)}`);
       return !!volumeDetail?.Name;
@@ -76,7 +83,7 @@ export default class DockerVolumeResource extends DockerBaseResource {
    */
   public deleteVolume = async (): Promise<boolean> => {
     try {
-      const result = await this.dockerConnection.getVolume(this.volumeName);
+      const result = await this.dockerConnection.getVolume(this.objectName);
       result.remove();
       return true;
     } catch (e) {

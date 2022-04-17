@@ -32,6 +32,8 @@
     "jest": "27.2.3",
     "nx": "13.9.6",
     "prettier": "^2.5.1",
+    "spdx-exceptions": "^2.3.0",
+    "spdx-license-ids": "^3.0.11",
     "ts-jest": "27.0.5",
     "ts-node": "^10.7.0",
     "typescript": "~4.5.2"

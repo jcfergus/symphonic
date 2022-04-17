@@ -9,9 +9,15 @@ export default class DockerNetworkResource extends DockerBaseResource {
   public static readonly type: 'dockerNetwork' = 'dockerNetwork';
   public type: 'dockerNetwork' = DockerNetworkResource.type;
 
-  public currentState: object;
   public networkName: string;
   public failIfExists: boolean;
+
+  get objectName(): string {
+    if (this.generalConfiguration.namespace) {
+      return `${this.generalConfiguration.namespace}_${this.networkName}`;
+    }
+    return this.networkName;
+  }
 
   public create = async (): Promise<ResourceStatus> => {
     const exists = await this.checkIfNetworkExists();
@@ -20,7 +26,7 @@ export default class DockerNetworkResource extends DockerBaseResource {
       this.created = false;
       this.ready = false;
       throw new Error(
-        `Docker network ${this.networkName} already exists and 'failIfExists' is set.`
+        `Docker network ${this.objectName} already exists and 'failIfExists' is set.`
       );
     }
 
@@ -28,7 +34,7 @@ export default class DockerNetworkResource extends DockerBaseResource {
       this.created = await this.createNetwork();
       this.ready = true;
     } else {
-      dbg(`Network ${this.networkName} already exists - using existing network.`);
+      dbg(`Network ${this.objectName} already exists - using existing network.`);
       this.created = false;
       this.ready = true;
     }

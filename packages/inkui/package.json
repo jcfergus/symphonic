@@ -1,0 +1,50 @@
+{
+	"name": "@symphonic/inkui",
+	"version": "0.0.1",
+	"license": "MIT",
+	"engines": {
+		"node": ">=12"
+	},
+	"scripts": {
+		"build": "tsc && chmod +x dist/packages/inkui/main.js",
+		"start": "npm run build && dist/packages/inkui/main.js",
+		"pretest": "npm run build",
+		"test": "xo && ava"
+	},
+	"files": [
+		"dist/cli.js"
+	],
+	"dependencies": {
+		"ink": "^3.2.0",
+		"meow": "^9.0.0",
+		"react": "^17.0.2"
+	},
+	"devDependencies": {
+		"@ava/typescript": "^3.0.1",
+		"@types/react": "^18.0.5",
+		"ava": "^4.2.0",
+		"chalk": "^4.1.2",
+		"eslint-config-xo-react": "^0.27.0",
+		"eslint-plugin-react": "^7.29.4",
+		"eslint-plugin-react-hooks": "^4.4.0",
+		"ink-testing-library": "^2.1.0",
+		"typescript": "^4.6.3",
+		"xo": "^0.39.1"
+	},
+	"ava": {
+		"typescript": {
+			"extensions": [
+				"tsx"
+			],
+			"rewritePaths": {
+				"source/": "dist/"
+			}
+		}
+	},
+	"xo": {
+		"extends": "xo-react",
+		"rules": {
+			"react/prop-types": "off"
+		}
+	}
+}

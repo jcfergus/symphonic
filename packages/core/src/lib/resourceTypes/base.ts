@@ -1,11 +1,14 @@
 import GeneralConfiguration from "../generalConfiguration";
 import ResourceStatus from "../utilities/resourceStatus";
+import ResourceConfiguration from "../resourceConfiguration";
 
 export default abstract class BaseResource {
   public name: string;
   public description?: string;
   public prettifier?: string;
   public needs?: Array<string>;
+
+  public dependencies: Array<ResourceConfiguration> = [];
 
   public generalConfiguration!: GeneralConfiguration;
 
@@ -52,13 +55,32 @@ export default abstract class BaseResource {
     this.generalConfiguration = configuration;
   }
 
+  /**
+   * These base functions don't do anything but set the lifecycle to the correct state,
+   * so that if an extended resource doesn't implement a particular function the state
+   * will be updated correctly regardless.
+   */
   public create = async (): Promise<ResourceStatus> => {
     this._ready = true;
     return this.status;
   };
 
-  public run?: () => Promise<ResourceStatus>;
-  public restart?: () => Promise<ResourceStatus>;
-  public stop?: () => Promise<ResourceStatus>;
-  public destroy?: () => Promise<ResourceStatus>;
+  public run = async (): Promise<ResourceStatus> => {
+    this._running = true;
+    return this.status;
+  }
+
+  public restart = async(): Promise<ResourceStatus> => {
+    return this.status;
+  }
+
+  public stop = async (): Promise<ResourceStatus> => {
+    this._running = false;
+    return this.status;
+  }
+
+  public destroy = async (): Promise<ResourceStatus> => {
+    this._destroyed = true;
+    return this.status;
+  }
 }

@@ -1,0 +1,52 @@
+{
+  "root": "packages/inkui",
+  "sourceRoot": "packages/inkui/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/node:webpack",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/inkui",
+        "main": "packages/inkui/src/cli.tsx",
+        "tsConfig": "packages/inkui/tsconfig.app.json",
+        "assets": ["packages/inkui/src/assets"]
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "inspect": false,
+          "fileReplacements": [
+            {
+              "replace": "packages/inkui/src/environments/environment.ts",
+              "with": "packages/inkui/src/environments/environment.prod.ts"
+            }
+          ]
+        }
+      }
+    },
+    "run": {
+      "executor": "@nrwl/node:node",
+      "options": {
+        "buildTarget": "inkui:build"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/inkui/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/packages/inkui"],
+      "options": {
+        "jestConfig": "packages/inkui/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": []
+}
