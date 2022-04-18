@@ -1,0 +1,59 @@
+{
+  "root": "packages/termui",
+  "sourceRoot": "packages/termui/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/termui",
+        "main": "packages/termui/src/main.ts",
+        "tsConfig": "packages/termui/tsconfig.app.json",
+        "assets": ["packages/termui/src/assets"]
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "inspect": false,
+          "fileReplacements": [
+            {
+              "replace": "packages/termui/src/environments/environment.ts",
+              "with": "packages/termui/src/environments/environment.prod.ts"
+            }
+          ]
+        }
+      }
+    },
+    "dev": {
+      "executor": "@nrwl/node:node",
+      "options": {
+        "buildTarget": "termui:build"
+      }
+    },
+    "run": {
+      "executor": "@nrwl/node:node",
+      "options": {
+        "buildTarget": "termui:build",
+        "watch": false
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/termui/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/packages/termui"],
+      "options": {
+        "jestConfig": "packages/termui/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": []
+}

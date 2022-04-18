@@ -45,7 +45,7 @@ export default class DockerVolumeResource extends DockerBaseResource {
     dbg(`Destroying docker volume resource ${this.objectName}.`);
     (await this.checkIfVolumeExists()) && (await this.deleteVolume());
 
-    return { destroyed: true }; // We're assuming if it doesn't exist, it's destroyed.
+    return new ResourceStatus({ destroyed: true }); // We're assuming if it doesn't exist, it's destroyed.
   };
 
   /**

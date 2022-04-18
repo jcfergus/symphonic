@@ -16,8 +16,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@symphonic/core": ["packages/core/src/index.ts"],
       "@symphonic/cli": ["packages/cli/src/index.ts"],
+      "@symphonic/core": ["packages/core/src/index.ts"],
       "@symphonic/inkui": ["packages/inkui/src/index.tsx"]
     }
   },

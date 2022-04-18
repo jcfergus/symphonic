@@ -14,12 +14,12 @@ export default class AggregateResource extends BaseResource {
   get status(): ResourceStatus {
     const dependentStatuses = this.dependencies.map((r) => r.status);
 
-    return {
+    return new ResourceStatus({
       created: dependentStatuses.every((r) => r.created),
       running: dependentStatuses.every((r) => r.running),
       ready: dependentStatuses.every((r) => r.ready),
       destroyed: dependentStatuses.every((r) => r.destroyed),
-    };
+    });
   }
 }
 

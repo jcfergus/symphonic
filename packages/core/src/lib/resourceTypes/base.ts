@@ -27,12 +27,12 @@ export default abstract class BaseResource {
   }
 
   get status(): ResourceStatus {
-    return {
+    return new ResourceStatus({
       created: this._created,
       ready: this._ready,
       running: this._running,
       destroyed: this._destroyed,
-    }
+    });
   }
 
   set created(isCreated: boolean) {
