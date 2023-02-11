@@ -1,7 +1,6 @@
 import BaseResource from "./base";
 
 import debug from 'debug';
-import ResourceStatus from "../utilities/resourceStatus";
 const log = debug("symphonic:core:resources:npm-script");
 
 export default class NpmScriptResource extends BaseResource {
@@ -9,7 +8,7 @@ export default class NpmScriptResource extends BaseResource {
   public type?: 'npmScript' = NpmScriptResource.type;
 
 
-  public run = async (): Promise<ResourceStatus> => {
+  public start = async (): Promise<void> => {
     log("Starting npm script resource.");
 
     return;

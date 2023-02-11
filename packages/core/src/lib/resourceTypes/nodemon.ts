@@ -1,7 +1,6 @@
 import BaseResource from "./base";
 
 import debug from 'debug';
-import ResourceStatus from "../utilities/resourceStatus";
 const log = debug("symphonic:core:resources:nodemon");
 
 export default class NodemonResource extends BaseResource {
@@ -9,7 +8,7 @@ export default class NodemonResource extends BaseResource {
   public type: 'nodemon' = NodemonResource.type;
 
 
-  public run = async (): Promise<ResourceStatus> => {
+  public start = async (): Promise<void> => {
     log("Starting nodemon resource.");
 
     return;

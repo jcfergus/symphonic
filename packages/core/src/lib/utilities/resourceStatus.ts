@@ -1,16 +1,23 @@
 
+export enum ResourceState {
+  NEW,
+  CREATED,
+  RUNNING,
+  STOPPED,
+  DESTROYED
+}
+
 export default class ResourceStatus {
+  state: ResourceState;
 
   created?: boolean;
   ready?: boolean;
   running?: boolean;
   destroyed?: boolean;
 
-  exitCode?: number;
-  error?: boolean;
-  errorMessage?: string;
+  error?: Error | undefined;
 
-  constructor(data: Record<string, boolean>) {
+  constructor(data: Partial<ResourceStatus>) {
     Object.assign(this, data);
   }
 

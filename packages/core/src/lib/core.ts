@@ -107,7 +107,7 @@ export default class Symphonic {
         }
       }
 
-      await resourceConfiguration.run();
+      await resourceConfiguration.start();
     }
 
     log.success("Started all resources.");
@@ -138,10 +138,10 @@ export default class Symphonic {
         dbg(`Creating resource ${resourceName}.`);
         let createResult = await resourceConfiguration.create();
 
-        if (!createResult.ready) {
-          dbg(`Create failed for resource ${resourceName}.`);
-          return;
-        }
+        //  if (!createResult.ready) {
+        //   dbg(`Create failed for resource ${resourceName}.`);
+        //   return;
+        // }
         log.success(`Resource ${resourceName} is ready.`)
       } else {
         dbg(`No create step defined for resource ${resourceName}`);

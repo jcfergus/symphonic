@@ -1,7 +1,6 @@
 import DockerBaseResource from "./dockerBase";
 
 import debug from 'debug';
-import ResourceStatus from "../utilities/resourceStatus";
 
 const dbg = debug("symphonic:core:resources:docker:network");
 
@@ -19,27 +18,24 @@ export default class DockerNetworkResource extends DockerBaseResource {
     return this.networkName;
   }
 
-  public create = async (): Promise<ResourceStatus> => {
+  public create = async (): Promise<void> => {
     const exists = await this.checkIfNetworkExists();
 
     if (exists && this.failIfExists) {
       this.created = false;
-      this.ready = false;
-      throw new Error(
+      this.setAndEmitError(new Error(
         `Docker network ${this.objectName} already exists and 'failIfExists' is set.`
-      );
+      ));
     }
 
     if (!exists) {
       this.created = await this.createNetwork();
-      this.ready = true;
+      this.emit('created', this.status);
     } else {
       dbg(`Network ${this.objectName} already exists - using existing network.`);
-      this.created = false;
-      this.ready = true;
+      this.created = true;
+      this.emit('created', this.status);
     }
-
-    return this.status;
   }
 
   public checkIfNetworkExists = async (): Promise<boolean> => {
@@ -55,7 +51,7 @@ export default class DockerNetworkResource extends DockerBaseResource {
 
   public createNetwork = async (): Promise<boolean> => {
     try {
-      await this.dockerConnection.createNetwork({ name: this.networkName });
+      await this.dockerConnection.createNetwork({ Name: this.networkName });
       const network = await this.dockerConnection.getNetwork(this.networkName);
       const networkDetail = await network.inspect();
       dbg(`Created network: ${JSON.stringify(networkDetail)}`);

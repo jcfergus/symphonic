@@ -16,7 +16,7 @@ export default class ShellCommandResource extends BaseResource {
   timeout?: number;
 
 
-  public run = async (): Promise<ResourceStatus> => {
+  public start = async (): Promise<void> => {
     log("Starting shell command resource.");
 
     return;

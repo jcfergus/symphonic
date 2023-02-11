@@ -9,7 +9,7 @@ export default class TsNodeDevResource extends BaseResource {
   public static readonly type: 'ts-node-dev';
   public type: 'ts-node-dev' = TsNodeDevResource.type;
 
-  public run = async (): Promise<ResourceStatus> => {
+  public start = async (): Promise<void> => {
     log("Starting ts-node-dev resource.");
 
     return;

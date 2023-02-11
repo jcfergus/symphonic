@@ -2,5 +2,9 @@
   "name": "@symphonic/core",
   "version": "0.0.1",
   "type": "commonjs",
-  "main": "src/index.ts"
+  "main": "src/index.ts",
+  "dependencies": {
+    "denque": "^2.0.1",
+    "dockerode": "^3.3.1"
+  }
 }

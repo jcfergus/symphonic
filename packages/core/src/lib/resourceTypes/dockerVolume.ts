@@ -1,5 +1,4 @@
 import debug from 'debug';
-import ResourceStatus from '../utilities/resourceStatus';
 import DockerBaseResource from './dockerBase';
 
 const dbg = debug('symphonic:core:resources:docker:volume');
@@ -18,34 +17,28 @@ export default class DockerVolumeResource extends DockerBaseResource {
     return this.volumeName;
   }
 
-  public create = async (): Promise<ResourceStatus> => {
+  public create = async (): Promise<void> => {
     const exists = await this.checkIfVolumeExists();
 
     if (exists && this.failIfExists) {
       this.created = false;
-      this.ready = false;
-      throw new Error(
+      this.setAndEmitError(new Error(
         `Docker volume ${this.objectName} already exists and 'failIfExists' is set.`
-      );
+      ));
     }
 
     if (!exists) {
       this.created = await this.createVolume();
-      this.ready = true;
     } else {
       this.created = false;
-      this.ready = true;
       dbg(`Volume ${this.objectName} already exists - using existing volume.`);
     }
-
-    return this.status;
   };
 
-  public destroy = async (): Promise<ResourceStatus> => {
+  public destroy = async (): Promise<void> => {
     dbg(`Destroying docker volume resource ${this.objectName}.`);
     (await this.checkIfVolumeExists()) && (await this.deleteVolume());
-
-    return new ResourceStatus({ destroyed: true }); // We're assuming if it doesn't exist, it's destroyed.
+    this.emit("destroyed", this.status);
   };
 
   /**
@@ -67,7 +60,7 @@ export default class DockerVolumeResource extends DockerBaseResource {
    */
   public createVolume = async (): Promise<boolean> => {
     try {
-      await this.dockerConnection.createVolume({ name: this.objectName });
+      await this.dockerConnection.createVolume({ Name: this.objectName });
       const volume = await this.dockerConnection.getVolume(this.objectName);
       const volumeDetail = await volume.inspect();
       dbg(`Created volume: ${JSON.stringify(volumeDetail)}`);

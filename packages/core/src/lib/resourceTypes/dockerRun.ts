@@ -1,9 +1,11 @@
 import debug from 'debug';
 import * as log from 'signale';
-import { Container } from 'dockerode';
+import { Container, EndpointsConfig, RestartPolicy } from "dockerode";
 
-import ResourceStatus from '../utilities/resourceStatus';
 import DockerBaseResource from './dockerBase';
+import DockerConfiguration from "../dockerConfiguration";
+import SymphonicConfiguration from "../configuration";
+import GeneralConfiguration from "../generalConfiguration";
 
 const dbg = debug('symphonic:core:resources:docker:run');
 
@@ -14,7 +16,7 @@ export default class DockerRunResource extends DockerBaseResource {
   public containerName: string;
   public failIfExists: boolean;
   public image: string;
-  public command: string;
+  public command: string[];
   public remove: boolean = false;
   public restartPolicy?: 'always' | 'unless-stopped' | 'on-failure';
   public networkDisabled: boolean = false;
@@ -49,40 +51,51 @@ export default class DockerRunResource extends DockerBaseResource {
     return this.containerName;
   }
 
-  public create = async (): Promise<ResourceStatus> => {
+  constructor(resourceConfiguration?: Partial<DockerRunResource>,
+              dockerConfiguration?: Partial<DockerConfiguration>,
+              generalConfiguration?: Partial<GeneralConfiguration>) {
+    super();
+    Object.assign(this, resourceConfiguration);
+    this.dockerConfiguration = dockerConfiguration;
+    this.generalConfiguration = generalConfiguration;
+  }
+
+
+  public create = async (): Promise<void> => {
     const exists = await this.checkIfContainerExists();
 
     if (exists && this.failIfExists) {
       this.created = false;
-      this.ready = false;
-      throw new Error(
+      this.emit('error', new Error(
         `Docker container ${this.objectName} already exists and 'failIfExists' is set.`
-      );
+      ));
     }
 
     if (!exists) {
       this.created = await this.createContainer();
-      this.ready = true;
+      this.emit("created", this.status);
+      this.emit("running", this.status);
     } else {
-      this.created = false;
-      this.ready = true;
       dbg(
         `Container ${this.objectName} already exists - using existing container.`
       );
+      this.created = false;
+      this.emit("running", this.status);
     }
-
-    return this.status;
   };
 
-  public run = async (): Promise<ResourceStatus> => {
+  public start = async (): Promise<void> => {
     dbg('Starting docker run resource.');
     try {
       this.running = !!(await this.startContainer());
     } catch (e) {
       dbg(`Error starting docker run resource: ${e.toString()}`);
+      this.emit('error', e);
     }
 
-    return this.status;
+    if (this.running) {
+      this.emit('running', this.status);
+    }
   };
 
   public checkIfContainerExists = async (): Promise<boolean> => {
@@ -103,6 +116,14 @@ export default class DockerRunResource extends DockerBaseResource {
    */
   public createContainer = async (): Promise<boolean> => {
     try {
+      const restartPolicy: RestartPolicy = this.restartPolicy
+        ? { Name: this.restartPolicy }
+        : undefined;
+
+      const endpointsConfig: EndpointsConfig = {
+        [this.network]: {}
+      }
+
       const containerConfig = {
         name: this.objectName,
         Name: this.objectName,
@@ -120,16 +141,14 @@ export default class DockerRunResource extends DockerBaseResource {
         NetworkMode: this.network || this.networkMode,
         ExposedPorts: this.exposedPorts,
         HostConfig: {
-          RestartPolicy: this.restartPolicy,
+          RestartPolicy: restartPolicy,
           AutoRemove: this.remove,
           Binds: this.volumes,
           Links: this.links,
           PortBindings: this.portBindings,
         },
         NetworkingConfig: {
-          Networks: {
-            [this.network]: {},
-          },
+          EndpointsConfig: endpointsConfig
         },
       };
 
@@ -154,8 +173,21 @@ export default class DockerRunResource extends DockerBaseResource {
       const container = await this.dockerConnection.getContainer(
         this.objectName
       );
-      container.start();
-      return true;
+      const containerDetail = await container.inspect();
+      if (containerDetail.State?.Status === 'running') {
+        log.warn(`Container ${this.name} is already running.`);
+      } else {
+        container.attach({stream: true, stdout: true, stderr: true}, (err, stream) => {
+          // Split the duplex logstream into distinct WritableStreams for stdout and
+          // stderr.
+          container.modem.demuxStream(stream, this.stdout, this.stderr);
+
+          // Now actually start the container.
+          container.start({}, (err, data) => {
+            return true;
+          });
+        })
+      }
     } catch (e) {
       dbg(`Failed to start container ${this.name}: ${e.toString()}`);
       return false;

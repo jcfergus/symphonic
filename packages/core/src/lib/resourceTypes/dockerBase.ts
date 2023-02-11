@@ -1,4 +1,4 @@
-import * as Docker from "dockerode";
+import Docker from "dockerode";
 
 import BaseResource from "./base";
 import DockerConfiguration from "../dockerConfiguration";
